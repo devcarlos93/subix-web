@@ -12,8 +12,6 @@ export const appRoutes = createBrowserRouter([
   { path: '/register', element: <RegisterPage />, loader: requireGuest },
   { path: '/register/success', element: <SuccessRegisterPage />, loader: requireGuest },
 
-  // === Redirect raíz ===
-  // TODO: validar token de localStorage. Si existe → /dashboard, si no → /login.
   {
     path: '/',
     loader: smartRootRedirect,
@@ -28,6 +26,5 @@ export const appRoutes = createBrowserRouter([
     ],
   },
 
-  // === 404 ===
   { path: '*', element: <NotFoundPage /> },
 ])
