@@ -2,11 +2,13 @@ import {Input} from "@shared/ui/input";
 import {Button} from "@shared/ui/button";
 import {Link} from "react-router";
 import GoogleIcon from "@shared/components/GoogleIcon";
-import {type SubmitHandler, useForm} from "react-hook-form";
-import {type LoginFormValues, loginSchema} from "@features/auth";
+import {useForm} from "react-hook-form";
+import {type LoginFormValues, loginSchema, useLoginMutation} from "@features/auth";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Loader2} from "lucide-react";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@shared/ui/form";
+import {PasswordInput} from "@shared/components/PasswordInput";
+import {AxiosError} from "axios";
 
 const FormLogin = () => {
     const form = useForm<LoginFormValues>({
@@ -16,14 +18,12 @@ const FormLogin = () => {
             password: ''
         }
     });
-    const {handleSubmit, formState: { isSubmitting }} = form;
 
+    const { handleSubmit } = form;
+    const { mutate, isPending, error } = useLoginMutation();
 
-
-    const onSubmit: SubmitHandler<LoginFormValues> = async (formValues) => {
-
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        console.log(formValues);
+    const onSubmit = (formValues: LoginFormValues) => {
+      mutate(formValues);
     }
 
     const handleGoogleLogin = () => {
@@ -57,7 +57,7 @@ const FormLogin = () => {
                                             placeholder="tu@email.com"
                                             autoComplete="email"
                                             className="h-12 rounded-xl"
-                                            disabled={isSubmitting}
+                                            disabled={isPending}
                                             {...field}
                                         />
                                     </FormControl>
@@ -73,12 +73,11 @@ const FormLogin = () => {
                                 <FormItem className="space-y-1.5">
                                     <FormLabel className="text-sm font-medium text-foreground">Contraseña</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            type="password"
+                                        <PasswordInput
                                             placeholder="••••••••"
                                             autoComplete="current-password"
                                             className="h-12 rounded-xl"
-                                            disabled={isSubmitting}
+                                            disabled={isPending}
                                             {...field}
                                         />
                                     </FormControl>
@@ -90,10 +89,18 @@ const FormLogin = () => {
 
                         <Button type="submit"
                                 className="h-12 w-full gap-2 rounded-xl text-base"
-                                disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                            { isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión' }
+                                disabled={isPending}>
+                            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                            { isPending ? 'Iniciando sesión…' : 'Iniciar sesión' }
                         </Button>
+
+                        {error && (
+                            <p className="text-center text-sm text-destructive">
+                                {error instanceof AxiosError && error.response?.status === 401
+                                    ? 'Credenciales inválidas'
+                                    : 'Error de conexión. Inténtalo de nuevo.'}
+                            </p>
+                        )}
                     </form>
                 </Form>
 
@@ -109,7 +116,7 @@ const FormLogin = () => {
                     type="button"
                     variant="outline"
                     onClick={handleGoogleLogin}
-                    disabled={isSubmitting}
+                    disabled={isPending}
                     className="h-12 w-full gap-3 rounded-xl text-base"
                 >
                     <GoogleIcon />

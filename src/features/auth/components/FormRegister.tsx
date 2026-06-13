@@ -1,12 +1,14 @@
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@shared/ui/form";
-import {type SubmitHandler, useForm} from "react-hook-form";
-import {type RegisterFormValues, registerSchema} from "@features/auth";
+import {useForm} from "react-hook-form";
+import {type RegisterFormValues, registerSchema, useRegisterMutation} from "@features/auth";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Input} from "@shared/ui/input";
 import {Button} from "@shared/ui/button";
 import {Loader2} from "lucide-react";
 import GoogleIcon from "@shared/components/GoogleIcon";
+import {PasswordInput} from "@shared/components/PasswordInput";
 import {Link} from "react-router";
+import {AxiosError} from "axios";
 
 const FormRegister = ()=> {
     const form = useForm<RegisterFormValues>({
@@ -19,12 +21,11 @@ const FormRegister = ()=> {
         }
     });
 
-    const {handleSubmit, formState:{ isSubmitting } } = form;
+    const { handleSubmit } = form;
+    const { mutate, isPending, error } = useRegisterMutation();
 
-    const onSubmit: SubmitHandler<RegisterFormValues> = async (formValues) => {
-
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        console.log(formValues);
+    const onSubmit = (formValues: RegisterFormValues) => {
+        mutate(formValues);
     }
 
     const handleGoogleRegister = () => {
@@ -60,7 +61,7 @@ const FormRegister = ()=> {
                                         placeholder="Nombre y apellido"
                                         autoComplete="name"
                                         className="h-12 rounded-xl"
-                                        disabled={isSubmitting}
+                                        disabled={isPending}
                                         {...field}
                                     />
                                 </FormControl>
@@ -81,7 +82,7 @@ const FormRegister = ()=> {
                                         placeholder="tu@email.com"
                                         autoComplete="email"
                                         className="h-12 rounded-xl"
-                                        disabled={isSubmitting}
+                                        disabled={isPending}
                                         {...field}
                                     />
                                 </FormControl>
@@ -97,12 +98,11 @@ const FormRegister = ()=> {
                             <FormItem className="space-y-1.5">
                                 <FormLabel className="text-sm font-medium text-foreground">Contraseña</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="password"
+                                    <PasswordInput
                                         placeholder="••••••••"
                                         autoComplete="new-password"
                                         className="h-12 rounded-xl"
-                                        disabled={isSubmitting}
+                                        disabled={isPending}
                                         {...field}
                                     />
                                 </FormControl>
@@ -118,12 +118,11 @@ const FormRegister = ()=> {
                             <FormItem className="space-y-1.5">
                                 <FormLabel className="text-sm font-medium text-foreground">Confirmar contraseña</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="password"
+                                    <PasswordInput
                                         placeholder="••••••••"
                                         autoComplete="new-password"
                                         className="h-12 rounded-xl"
-                                        disabled={isSubmitting}
+                                        disabled={isPending}
                                         {...field}
                                     />
                                 </FormControl>
@@ -134,10 +133,18 @@ const FormRegister = ()=> {
 
                     <Button type="submit"
                             className="h-12 w-full gap-2 rounded-xl text-base"
-                            disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                        { isSubmitting ? 'Creando cuenta…' : 'Crear cuenta' }
+                            disabled={isPending}>
+                        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                        { isPending ? 'Creando cuenta…' : 'Crear cuenta' }
                     </Button>
+
+                    {error && (
+                        <p className="text-center text-sm text-destructive">
+                            {error instanceof AxiosError && error.response?.status === 409
+                                ? 'Ese email ya está registrado'
+                                : 'No pudimos crear tu cuenta. Inténtalo de nuevo.'}
+                        </p>
+                    )}
                 </form>
             </Form>
 
@@ -153,7 +160,7 @@ const FormRegister = ()=> {
                 type="button"
                 variant="outline"
                 onClick={handleGoogleRegister}
-                disabled={isSubmitting}
+                disabled={isPending}
                 className="h-12 w-full gap-3 rounded-xl text-base"
             >
                 <GoogleIcon />

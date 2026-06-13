@@ -3,5 +3,8 @@ export  { default as RegisterPage } from './pages/RegisterPage';
 export { default as HeroBranding} from './components/HeroBranding';
 export { default as FormLogin } from './components/FormLogin';
 export { default as FormRegister } from './components/FormRegister';
+export { SuccessRegister } from './components/SuccessRegister';
 export * from './schemas/loginSchema';
 export * from './schemas/registerSchema';
+export * from './api';
+export * from './interfaces';
